@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "description": "Simple home budgeting app to plan monthly budgets and track incomes, savings, monthly expenses, and daily expenses. Built with the MERN stack.",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "dev": "node --watch src/index.js",
+    "dev": "node --watch -r dotenv/config src/index.js",
     "start": "node src/index.js",
     "lint": "eslint src --ext .js",
     "format": "prettier --write \"src/**/*.{js,json,md}\""
@@ -22,6 +23,7 @@
   "homepage": "https://github.com/MuhammadHussnainShaker/homebudgeting-backend#readme",
   "dependencies": {
     "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "mongoose": "^9.0.2"
   },
