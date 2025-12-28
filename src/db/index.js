@@ -11,7 +11,7 @@ const connectDB = async () => {
     )
   } catch (error) {
     console.error(
-      `Following error occured while connecting to MongoDB: ${error}`
+      `Following error occured while connecting to the MongoDB: ${error}`
     )
     process.exit(1)
   }
