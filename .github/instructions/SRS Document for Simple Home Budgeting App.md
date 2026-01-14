@@ -76,7 +76,7 @@ An individual identified by a unique phone number who creates/edits projected an
 
   FR-13 \- MVP \- High
 
-- [ ] FR-14 — The user shall create/edit/view/delete the parent category for the expenses.
+- [x] FR-14 — The user shall create/edit/view/delete the parent category for the expenses.
 
   FR-14 \- MVP \- High
 

@@ -13,10 +13,12 @@ app.use(cookieParser())
 import userRouter from './routes/user.routes.js'
 import incomeRouter from './routes/income.routes.js'
 import savingRouter from './routes/saving.routes.js'
+import parentCategoryRouter from './routes/parentCategory.routes.js'
 
 // routes declaration
 app.use('/api/v1/users', userRouter)
 app.use('/api/v1/incomes', incomeRouter)
 app.use('/api/v1/savings', savingRouter)
+app.use('/api/v1/parent-categories', parentCategoryRouter)
 
 export { app }
