@@ -4,7 +4,7 @@ import {
   getParentCategories,
   updateParentCategory,
   deleteParentCategory,
-} from '../controllers/parentCategories.controller.js'
+} from '../controllers/parentCategory.controller.js'
 import { verifyJWT } from '../middlewares/auth.middleware.js'
 
 const router = Router()

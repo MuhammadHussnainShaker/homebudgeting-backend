@@ -5,7 +5,7 @@ import {
   getMonthlyCategoricalExpenses,
   updateMonthlyCategoricalExpense,
   deleteMonthlyCategoricalExpense,
-} from '../controllers/monthlyCategoricalExpenses.controller.js'
+} from '../controllers/monthlyCategoricalExpense.controller.js'
 import { verifyJWT } from '../middlewares/auth.middleware.js'
 
 const router = Router()
