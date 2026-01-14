@@ -8,11 +8,14 @@ const createParentCategory = asyncHandler(async (req, res) => {
   const { description, month } = req.body
 
   if (!description?.trim()) {
-    throw new ApiError(400, 'Description for income record is required')
+    throw new ApiError(
+      400,
+      'Description for parent category record is required',
+    )
   }
 
   if (!month) {
-      throw new ApiError(400, 'Month for income record is required')
+    throw new ApiError(400, 'Month for parent category record is required')
   }
 
   const parentCategory = await ParentCategory.create({
@@ -70,7 +73,7 @@ const getParentCategories = asyncHandler(async (req, res) => {
 const updateParentCategory = asyncHandler(async (req, res) => {
   const { parentCategoryId } = req.params
   const { description } = req.body
-  console.log('parentCategoryId', parentCategoryId)
+  
   if (!mongoose.Types.ObjectId.isValid(parentCategoryId)) {
     throw new ApiError(400, 'Invalid parent category ID format')
   }
@@ -135,7 +138,11 @@ const deleteParentCategory = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(
-      new ApiResponse(200, null, 'The parent category record is deleted successfully'),
+      new ApiResponse(
+        200,
+        null,
+        'The parent category record is deleted successfully',
+      ),
     )
 })
 
