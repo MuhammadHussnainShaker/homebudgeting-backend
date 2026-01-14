@@ -80,19 +80,19 @@ An individual identified by a unique phone number who creates/edits projected an
 
   FR-14 \- MVP \- High
 
-- [ ] FR-15 — The user shall add/edit/view/delete a category for the expenses.
+- [x] FR-15 — The user shall add/edit/view/delete a category for the expenses.
 
   FR-15 \- MVP \- High
 
-- [ ] FR-16 — The user shall make a category selectable/unselectable for an individual expense.
+- [x] FR-16 — The user shall make a category selectable/unselectable for an individual expense.
 
   FR-16 \- MVP \- High
 
-- [ ] FR-17 — The user shall input/edit/view/delete the projected expenses amount for a category.
+- [x] FR-17 — The user shall input/edit/view/delete the projected expenses amount for a category.
 
   FR-17 \- MVP \- High
 
-- [ ] FR-18 — The user shall input/edit/view/delete the actual expenses amount for a category if and only if the category is unselectable for an individual expense.
+- [x] FR-18 — The user shall input/edit/view/delete the actual expenses amount for a category if and only if the category is unselectable for an individual expense.
 
   FR-18 \- MVP \- High
 
@@ -116,7 +116,7 @@ An individual identified by a unique phone number who creates/edits projected an
 
   FR-23 \- MVP \- High
 
-- [ ] FR-24 — The user shall track the history of monthly expenses by navigating through previous months and years.
+- [x] FR-24 — The user shall track the history of monthly expenses by navigating through previous months and years.
 
   FR-24 \- MVP \- High
 

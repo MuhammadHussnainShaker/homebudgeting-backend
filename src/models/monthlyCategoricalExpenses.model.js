@@ -37,6 +37,8 @@ const monthlyCategoricalExpenseSchema = new mongoose.Schema(
   },
 )
 
+monthlyCategoricalExpenseSchema.index({ userId: 1, month: 1 })
+
 export const MonthlyCategoricalExpense = mongoose.model(
   'MonthlyCategoricalExpense',
   monthlyCategoricalExpenseSchema,
