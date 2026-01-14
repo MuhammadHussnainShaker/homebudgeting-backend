@@ -18,7 +18,7 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
     throw new ApiError(401, 'Invalid access token')
   }
 
-  const userId = decodedToken?._id
+  const userId = decodedToken?.userId || decodedToken?._id
   const user = await User.findById(userId).select('-__v')
 
   if (!user) throw new ApiError(401, 'Invalid access token')
