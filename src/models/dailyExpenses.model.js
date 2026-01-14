@@ -10,7 +10,6 @@ const dailyExpenseSchema = new mongoose.Schema(
     monthlyCategoricalExpenseId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'MonthlyCategoricalExpense',
-      required: true,
     },
     description: {
       type: String,
@@ -27,5 +26,7 @@ const dailyExpenseSchema = new mongoose.Schema(
   },
   { timestamps: true },
 )
+
+dailyExpenseSchema.index({ userId : 1, date : 1,})
 
 export const DailyExpense = mongoose.model('DailyExpense', dailyExpenseSchema)

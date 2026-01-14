@@ -132,11 +132,11 @@ An individual identified by a unique phone number who creates/edits projected an
 
   FR-27 \- MVP \- High
 
-- [ ] FR-28 — The user shall add/view/edit/delete detail for each expense individually, against each date.
+- [x] FR-28 — The user shall add/view/edit/delete detail for each expense individually, against each date.
 
   FR-28 \- MVP \- High
 
-- [ ] FR-29 — The user shall view and add category for individual expense from the list of categories made selectable in the monthly expenses window.
+- [x] FR-29 — The user shall view and add category for individual expense from the list of categories made selectable in the monthly expenses window.
 
   FR-29 \- MVP \- High
 
@@ -144,7 +144,7 @@ An individual identified by a unique phone number who creates/edits projected an
 
   FR-30 \- MVP \- High
 
-- [ ] FR-31 — The user shall track the history of daily expenses by navigating through previous months and years.
+- [x] FR-31 — The user shall track the history of daily expenses by navigating through previous months and years.
 
   FR-31 \- MVP \- High
 
