@@ -25,7 +25,9 @@ const savingSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 )
+
+savingSchema.index({ userId: 1, month: 1 })
 
 export const Saving = mongoose.model('Saving', savingSchema)

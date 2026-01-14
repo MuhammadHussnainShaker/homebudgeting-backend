@@ -25,7 +25,9 @@ const incomeSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 )
+
+incomeSchema.index({ userId: 1, month: 1 })
 
 export const Income = mongoose.model('Income', incomeSchema)
