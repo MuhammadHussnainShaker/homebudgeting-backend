@@ -25,7 +25,7 @@ const dailyExpenseSchema = new mongoose.Schema(
       required: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 )
 
 export const DailyExpense = mongoose.model('DailyExpense', dailyExpenseSchema)

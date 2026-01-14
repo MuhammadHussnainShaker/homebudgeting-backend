@@ -14,10 +14,10 @@ const parentCategorySchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 )
 
 export const ParentCategory = mongoose.model(
   'ParentCategory',
-  parentCategorySchema
+  parentCategorySchema,
 )

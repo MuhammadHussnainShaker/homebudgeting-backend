@@ -5,7 +5,7 @@ import { ApiResponse } from '../utils/ApiResponse.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
 
 const registerUserByPhone = asyncHandler(async (req, res) => {
-  console.log(req.body)
+  // console.log(req.body)
   const { phoneNumber, displayName } = req.body
 
   if (!phoneNumber || !displayName) {

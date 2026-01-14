@@ -34,10 +34,10 @@ const monthlyCategoricalExpenseSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 )
 
 export const MonthlyCategoricalExpense = mongoose.model(
   'MonthlyCategoricalExpense',
-  monthlyCategoricalExpenseSchema
+  monthlyCategoricalExpenseSchema,
 )

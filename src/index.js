@@ -11,8 +11,8 @@ connectDB()
   })
   .catch((error) =>
     console.log(
-      `Following error occured while connecting to the MongoDB: ${error}`
-    )
+      `Following error occured while connecting to the MongoDB: ${error}`,
+    ),
   )
 
 const testArray = [
