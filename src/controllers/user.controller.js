@@ -22,8 +22,14 @@ const registerUserByPhone = asyncHandler(async (req, res) => {
     expiresIn: '350d',
   })
 
+  const options = {
+    httpOnly: true,
+    secure: true,
+  }
+
   return res
     .status(201)
+    .cookie('accessToken', token, options)
     .json(new ApiResponse(201, { user, token }, 'Registration successful'))
 })
 
@@ -43,8 +49,14 @@ const loginUserByPhone = asyncHandler(async (req, res) => {
     expiresIn: '350d',
   })
 
+  const options = {
+    httpOnly: true,
+    secure: true,
+  }
+
   return res
     .status(200)
+    .cookie('accessToken', token, options)
     .json(new ApiResponse(200, { user, token }, 'Login successful'))
 })
 
