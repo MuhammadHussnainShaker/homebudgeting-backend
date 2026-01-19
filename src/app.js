@@ -26,6 +26,16 @@ app.use('/api/v1/parent-categories', parentCategoryRouter)
 app.use('/api/v1/monthly-categorical-expenses', monthlyCategoricalExpenseRouter)
 app.use('/api/v1/daily-expense', dailyExpenseRouter)
 
+const testArray = [
+  { id: 1, name: 'Item 1' },
+  { id: 2, name: 'Item 2' },
+]
+
+app.get('/test', (req, res) => {
+  console.log(`HomeBudgeting API hit at: ${new Date().toLocaleTimeString()}`)
+  res.json(testArray)
+})
+
 app.use((req, res) => {
   res.status(404).json({ success: false, message: 'Not Found' })
 })
