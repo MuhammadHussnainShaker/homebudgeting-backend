@@ -3,6 +3,7 @@ import { ApiError } from '../utils/ApiError.js'
 import { ApiResponse } from '../utils/ApiResponse.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { DailyExpense } from '../models/dailyExpenses.model.js'
+import { fetchSelectableCategoricalExpenses } from './monthlyCategoricalExpense.controller.js'
 
 const createDailyExpense = asyncHandler(async (req, res) => {
   const { description, amount, date } = req.body
@@ -39,7 +40,7 @@ const createDailyExpense = asyncHandler(async (req, res) => {
 
 const getExpensesByDateOrMonth = asyncHandler(async (req, res) => {
   const { date, month } = req.query
-  let startDate, endDate
+  let startDate, endDate, selectableCategoricalExpenses
 
   if (date) {
     startDate = new Date(date)
@@ -47,6 +48,13 @@ const getExpensesByDateOrMonth = asyncHandler(async (req, res) => {
 
     endDate = new Date(date)
     endDate.setUTCHours(23, 59, 59, 999)
+
+    selectableCategoricalExpenses = await fetchSelectableCategoricalExpenses({
+      userId: req.user._id,
+      month: new Date(
+        Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth(), 1),
+      ),
+    })
   } else if (month) {
     const [year, mon] = month.split('-')
 
@@ -77,8 +85,8 @@ const getExpensesByDateOrMonth = asyncHandler(async (req, res) => {
     .json(
       new ApiResponse(
         200,
-        dailyExpenses,
-        `Daily Expenses for ${startDate.toISOString().slice(0, 7)} is fetched successfully`,
+        { selectableCategoricalExpenses, dailyExpenses },
+        `Daily Expenses for ${startDate.toISOString()} is fetched successfully`,
       ),
     )
 })

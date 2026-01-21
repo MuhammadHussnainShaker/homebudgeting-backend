@@ -91,6 +91,35 @@ const toggleMonthlyCategoricalExpenseSelectable = asyncHandler(
   },
 )
 
+const fetchSelectableCategoricalExpenses = async ({ userId, month }) => {
+  if (!month) {
+    throw new ApiError(
+      400,
+      'Month is required to fetch selectable categorical expenses',
+    )
+  }
+
+  const monthStart = new Date(month)
+
+  const monthEnd = new Date(
+    Date.UTC(monthStart.getUTCFullYear(), monthStart.getUTCMonth() + 1, 1),
+  )
+
+  const selectableCategoricalExpenses = await MonthlyCategoricalExpense.find({
+    userId: userId,
+    month: {
+      $gte: monthStart,
+      $lt: monthEnd,
+    },
+    selectable: true,
+  })
+    .select('description')
+    .sort({ month: 1 })
+    .lean()
+
+  return selectableCategoricalExpenses
+}
+
 const getMonthlyCategoricalExpenses = asyncHandler(async (req, res) => {
   const { month } = req.params
 
@@ -231,6 +260,7 @@ const deleteMonthlyCategoricalExpense = asyncHandler(async (req, res) => {
 export {
   createMonthlyCategoricalExpense,
   toggleMonthlyCategoricalExpenseSelectable,
+  fetchSelectableCategoricalExpenses,
   getMonthlyCategoricalExpenses,
   updateMonthlyCategoricalExpense,
   deleteMonthlyCategoricalExpense,

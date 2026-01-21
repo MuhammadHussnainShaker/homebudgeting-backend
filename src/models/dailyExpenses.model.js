@@ -10,6 +10,7 @@ const dailyExpenseSchema = new mongoose.Schema(
     monthlyCategoricalExpenseId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'MonthlyCategoricalExpense',
+      default: null,
     },
     description: {
       type: String,
