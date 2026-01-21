@@ -18,6 +18,9 @@ const dailyExpenseSchema = new mongoose.Schema(
     },
     amount: {
       type: Number,
+      required: [true, 'Amount is required'], 
+      min: [0, 'Amount cannot be negative. You entered: {VALUE}'],
+      default: 0,
     },
     date: {
       // exact day/time of expense — store as JS Date (normalize to UTC when creating)
