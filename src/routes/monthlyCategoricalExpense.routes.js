@@ -13,7 +13,7 @@ router.use(verifyJWT)
 
 router.route('/').post(createMonthlyCategoricalExpense)
 router
-  .route('/:monthlyCategoricalExpenseId/toggle-selectable')
+  .route('/:monthlyCategoricalExpenseId/toggle-selectable/:month')
   .patch(toggleMonthlyCategoricalExpenseSelectable)
 router.route('/:month').get(getMonthlyCategoricalExpenses)
 router

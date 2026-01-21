@@ -3,6 +3,7 @@ import { ApiError } from '../utils/ApiError.js'
 import { ApiResponse } from '../utils/ApiResponse.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { MonthlyCategoricalExpense } from '../models/monthlyCategoricalExpenses.model.js'
+import { deleteCategoryFromDailyExpenses } from './dailyExpense.controller.js'
 
 const createMonthlyCategoricalExpense = asyncHandler(async (req, res) => {
   const { parentId, description, projectedAmount, actualAmount, month } =
@@ -42,83 +43,6 @@ const createMonthlyCategoricalExpense = asyncHandler(async (req, res) => {
       ),
     )
 })
-
-const toggleMonthlyCategoricalExpenseSelectable = asyncHandler(
-  async (req, res) => {
-    const { monthlyCategoricalExpenseId } = req.params
-    const { selectable } = req.body
-
-    if (!mongoose.Types.ObjectId.isValid(monthlyCategoricalExpenseId)) {
-      throw new ApiError(400, 'Invalid monthly categorical expense ID format')
-    }
-
-    if (typeof selectable != 'boolean') {
-      throw new ApiError(400, 'Please send the value in Boolean data type')
-    }
-
-    const updatedMonthlyCategoricalExpense =
-      await MonthlyCategoricalExpense.findByIdAndUpdate(
-        {
-          _id: monthlyCategoricalExpenseId,
-          userId: req.user._id,
-        },
-        {
-          selectable: selectable,
-        },
-        {
-          new: true,
-        },
-      )
-        .lean()
-        .exec()
-
-    if (!updatedMonthlyCategoricalExpense) {
-      throw new ApiError(
-        404,
-        'Monthly categorical expense not found or unauthorized',
-      )
-    }
-
-    return res
-      .status(200)
-      .json(
-        new ApiResponse(
-          200,
-          updatedMonthlyCategoricalExpense,
-          'The monthly categorical expense record is updated successfully',
-        ),
-      )
-  },
-)
-
-const fetchSelectableCategoricalExpenses = async ({ userId, month }) => {
-  if (!month) {
-    throw new ApiError(
-      400,
-      'Month is required to fetch selectable categorical expenses',
-    )
-  }
-
-  const monthStart = new Date(month)
-
-  const monthEnd = new Date(
-    Date.UTC(monthStart.getUTCFullYear(), monthStart.getUTCMonth() + 1, 1),
-  )
-
-  const selectableCategoricalExpenses = await MonthlyCategoricalExpense.find({
-    userId: userId,
-    month: {
-      $gte: monthStart,
-      $lt: monthEnd,
-    },
-    selectable: true,
-  })
-    .select('description')
-    .sort({ month: 1 })
-    .lean()
-
-  return selectableCategoricalExpenses
-}
 
 const getMonthlyCategoricalExpenses = asyncHandler(async (req, res) => {
   const { month } = req.params
@@ -257,11 +181,110 @@ const deleteMonthlyCategoricalExpense = asyncHandler(async (req, res) => {
     )
 })
 
+const toggleMonthlyCategoricalExpenseSelectable = asyncHandler(
+  async (req, res) => {
+    const { monthlyCategoricalExpenseId, month } = req.params
+    const { selectable } = req.body
+    console.log('month', month)
+
+    if (!mongoose.Types.ObjectId.isValid(monthlyCategoricalExpenseId)) {
+      throw new ApiError(400, 'Invalid monthly categorical expense ID format')
+    }
+
+    if (typeof selectable != 'boolean') {
+      throw new ApiError(400, 'Please send the value in Boolean data type')
+    }
+
+    const d = new Date(month)
+    if (Number.isNaN(d.getTime()) || d.toISOString() !== month) {
+      throw new ApiError(
+        400,
+        'Please send date in 2026-01-01T00:00:00.000Z format',
+      )
+    }
+
+    const session = await mongoose.startSession()
+    session.startTransaction()
+
+    try {
+      
+
+      const updatedRecord = await MonthlyCategoricalExpense.findOneAndUpdate(
+        { _id: monthlyCategoricalExpenseId, userId: req.user._id },
+        { $set: { selectable } },
+        { new: true, runValidators: true, session },
+      ).lean()
+
+      if (!updatedRecord) {
+        throw new ApiError(404, 'Record not found or unauthorized')
+      }
+
+      let modifiedCount = 0
+
+      if (selectable === false) {
+        const updateStats = await deleteCategoryFromDailyExpenses({
+          monthlyCategoricalExpenseId,
+          userId: req.user._id,
+          month,
+          session,
+        })
+        modifiedCount = updateStats.modifiedCount ?? updateStats.nModified ?? 0
+      }
+
+      await session.commitTransaction()
+
+      return res
+        .status(200)
+        .json(
+          new ApiResponse(
+            200,
+            { record: updatedRecord, unlinkedCount: modifiedCount },
+            'Updated successfully',
+          ),
+        )
+    } catch (error) {
+      await session.abortTransaction()
+      throw error
+    } finally {
+      session.endSession()
+    }
+  },
+)
+
+const fetchSelectableCategoricalExpenses = async ({ userId, month }) => {
+  if (!month) {
+    throw new ApiError(
+      400,
+      'Month is required to fetch selectable categorical expenses',
+    )
+  }
+
+  const monthStart = new Date(month)
+
+  const monthEnd = new Date(
+    Date.UTC(monthStart.getUTCFullYear(), monthStart.getUTCMonth() + 1, 1),
+  )
+
+  const selectableCategoricalExpenses = await MonthlyCategoricalExpense.find({
+    userId: userId,
+    month: {
+      $gte: monthStart,
+      $lt: monthEnd,
+    },
+    selectable: true,
+  })
+    .select('description')
+    .sort({ month: 1 })
+    .lean()
+
+  return selectableCategoricalExpenses
+}
+
 export {
   createMonthlyCategoricalExpense,
-  toggleMonthlyCategoricalExpenseSelectable,
-  fetchSelectableCategoricalExpenses,
   getMonthlyCategoricalExpenses,
   updateMonthlyCategoricalExpense,
   deleteMonthlyCategoricalExpense,
+  toggleMonthlyCategoricalExpenseSelectable,
+  fetchSelectableCategoricalExpenses,
 }

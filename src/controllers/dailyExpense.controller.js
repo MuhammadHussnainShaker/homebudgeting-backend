@@ -174,9 +174,47 @@ const deleteDailyExpense = asyncHandler(async (req, res) => {
     )
 })
 
+const deleteCategoryFromDailyExpenses = async ({
+  monthlyCategoricalExpenseId,
+  userId,
+  month,
+  session,
+}) => {
+  // check in Daily Expenses where monthlyCategoricalExpenseId = categoricalExpenseId
+  // and where date is gt startDate and lt endDate
+  // then make monthlyCategoricalExpensecategoricalExpenseId of all that expenses to null
+
+  const monthStart = new Date(month)
+
+  const monthEnd = new Date(
+    Date.UTC(monthStart.getUTCFullYear(), monthStart.getUTCMonth() + 1, 1),
+  )
+
+  return await DailyExpense.updateMany(
+    {
+      // Filter
+      monthlyCategoricalExpenseId,
+      userId,
+      date: {
+        $gte: monthStart,
+        $lt: monthEnd,
+      },
+    },
+    {
+      $set: {
+        monthlyCategoricalExpenseId: null,
+      },
+    },
+    {
+      session,
+    },
+  )
+}
+
 export {
   createDailyExpense,
   getExpensesByDateOrMonth,
   updateDailyExpense,
   deleteDailyExpense,
+  deleteCategoryFromDailyExpenses,
 }
