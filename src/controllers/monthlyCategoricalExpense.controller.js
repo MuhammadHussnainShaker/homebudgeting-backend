@@ -1,7 +1,10 @@
 import mongoose from 'mongoose'
-import { ApiError } from '../utils/ApiError.js'
-import { ApiResponse } from '../utils/ApiResponse.js'
-import { asyncHandler } from '../utils/asyncHandler.js'
+import {
+  ApiError,
+  ApiResponse,
+  asyncHandler,
+  validateAndSanitizeInput,
+} from '../utils/index.js'
 import { MonthlyCategoricalExpense } from '../models/monthlyCategoricalExpenses.model.js'
 import { deleteCategoryFromDailyExpenses } from './dailyExpense.controller.js'
 
@@ -187,31 +190,18 @@ const toggleMonthlyCategoricalExpenseSelectable = asyncHandler(
     const { selectable } = req.body
     console.log('month', month)
 
-    if (!mongoose.Types.ObjectId.isValid(monthlyCategoricalExpenseId)) {
-      throw new ApiError(400, 'Invalid monthly categorical expense ID format')
-    }
-
-    if (typeof selectable != 'boolean') {
-      throw new ApiError(400, 'Please send the value in Boolean data type')
-    }
-
-    const d = new Date(month)
-    if (Number.isNaN(d.getTime()) || d.toISOString() !== month) {
-      throw new ApiError(
-        400,
-        'Please send date in 2026-01-01T00:00:00.000Z format',
-      )
-    }
+    const validated = validateAndSanitizeInput(
+      { monthlyCategoricalExpenseId, month, selectable },
+      ['monthlyCategoricalExpenseId', 'month', 'selectable'],
+    )
 
     const session = await mongoose.startSession()
     session.startTransaction()
 
     try {
-      
-
       const updatedRecord = await MonthlyCategoricalExpense.findOneAndUpdate(
         { _id: monthlyCategoricalExpenseId, userId: req.user._id },
-        { $set: { selectable } },
+        { $set: { selectable: validated.selectable, actualAmount: 0 } },
         { new: true, runValidators: true, session },
       ).lean()
 
