@@ -110,61 +110,75 @@ const updateDailyExpense = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'At least one field must be provided to update')
   }
 
-  const previousDailyExpense = await DailyExpense.findOneAndUpdate(
-    { _id: dailyExpenseId, userId: req.user._id },
-    { $set: dataToUpdate },
-    {
-      runValidators: true,
-    },
-  ).lean()
+  const session = await mongoose.startSession()
+  session.startTransaction()
 
-  if (!previousDailyExpense) {
-    throw new ApiError(404, 'Daily expense not found or unauthorized')
-  }
-
-  // this DB call needs to be in session
-  let updatedDailyExpense
-  if (
-    previousDailyExpense?.monthlyCategoricalExpenseId !== null ||
-    previousDailyExpense?.amount !== 0 ||
-    (dataToUpdate?.amount !== null && dataToUpdate?.amount !== undefined)
-  ) {
-    updatedDailyExpense = await DailyExpense.findOne({
+  try {
+    const before = await DailyExpense.findOne({
       _id: dailyExpenseId,
-    }).lean()
-    if (previousDailyExpense?.amount !== updatedDailyExpense?.amount) {
-      const amountToUpdate =
-        updatedDailyExpense?.amount - previousDailyExpense?.amount
-      addExpAmountToCategoryActAmt({
-        monthlyCategoricalExpenseId:
-          updatedDailyExpense?.monthlyCategoricalExpenseId,
+      userId: req.user._id,
+    })
+      .session(session)
+      .lean()
+
+    if (!before) {
+      throw new ApiError(404, 'Daily expense not found or unauthorized')
+    }
+
+    const after = await DailyExpense.findOneAndUpdate(
+      { _id: dailyExpenseId, userId: req.user._id },
+      { $set: dataToUpdate },
+      { new: true, runValidators: true, session },
+    ).lean()
+
+    if (!after) {
+      throw new ApiError(404, 'Daily expense not found or unauthorized')
+    }
+
+    const oldCat = before.monthlyCategoricalExpenseId?.toString() ?? null
+    const newCat = after.monthlyCategoricalExpenseId?.toString() ?? null
+    const oldAmt = Number(before.amount) || 0
+    const newAmt = Number(after.amount) || 0
+
+    if (oldCat === newCat) {
+      await adjustSelectableCategoryActualAmount({
+        monthlyCategoricalExpenseId: newCat,
         userId: req.user._id,
-        amount: amountToUpdate,
+        delta: newAmt - oldAmt,
+        session,
       })
-    } else if (
-      // check if user is adding category on expense
-      dataToUpdate?.monthlyCategoricalExpenseId !== null &&
-      dataToUpdate?.monthlyCategoricalExpenseId !== undefined
-    ) {
-      const amountToUpdate = updatedDailyExpense?.amount
-      addExpAmountToCategoryActAmt({
-        monthlyCategoricalExpenseId:
-          updatedDailyExpense?.monthlyCategoricalExpenseId,
+    } else {
+      await adjustSelectableCategoryActualAmount({
+        monthlyCategoricalExpenseId: oldCat,
         userId: req.user._id,
-        amount: amountToUpdate,
+        delta: -oldAmt,
+        session,
+      })
+      await adjustSelectableCategoryActualAmount({
+        monthlyCategoricalExpenseId: newCat,
+        userId: req.user._id,
+        delta: newAmt,
+        session,
       })
     }
-  }
 
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        updatedDailyExpense,
-        'The daily expense is updated successfully',
-      ),
-    )
+    await session.commitTransaction()
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          after,
+          'The daily expense is updated successfully',
+        ),
+      )
+  } catch (error) {
+    await session.abortTransaction()
+    throw error
+  } finally {
+    session.endSession()
+  }
 })
 
 function buildDailyExpenseUpdateData({
@@ -200,43 +214,56 @@ const deleteDailyExpense = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'Invalid daily expense ID format')
   }
 
-  const existingRecord = await DailyExpense.findOne({
-    _id: dailyExpenseId,
-    userId: req.user._id,
-  }).lean()
+  const session = await mongoose.startSession()
+  session.startTransaction()
 
-  if (!existingRecord) {
-    throw new ApiError(
-      404,
-      'Daily expense not found or you do not have permission to delete it',
-    )
-  }
-
-  if (existingRecord?.monthlyCategoricalExpenseId && existingRecord?.amount) {
-    await deleteActAmtFromCategory({
-      monthlyCategoricalExpenseId: existingRecord?.monthlyCategoricalExpenseId,
+  try {
+    const existingRecord = await DailyExpense.findOne({
+      _id: dailyExpenseId,
       userId: req.user._id,
-      amount: existingRecord?.amount,
     })
+      .session(session)
+      .lean()
+
+    if (!existingRecord) {
+      throw new ApiError(
+        404,
+        'Daily expense not found or you do not have permission to delete it',
+      )
+    }
+
+    await adjustSelectableCategoryActualAmount({
+      monthlyCategoricalExpenseId: existingRecord.monthlyCategoricalExpenseId,
+      userId: req.user._id,
+      delta: -(Number(existingRecord.amount) || 0),
+      session,
+    })
+
+    const deletedRecord = await DailyExpense.findOneAndDelete({
+      _id: dailyExpenseId,
+      userId: req.user._id,
+    }).session(session)
+
+    if (!deletedRecord) {
+      throw new ApiError(
+        404,
+        'Daily expense not found or you do not have permission to delete it',
+      )
+    }
+
+    await session.commitTransaction()
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, null, 'The daily expense is deleted successfully'),
+      )
+  } catch (error) {
+    await session.abortTransaction()
+    throw error
+  } finally {
+    session.endSession()
   }
-
-  const deletedRecord = await DailyExpense.findOneAndDelete({
-    _id: dailyExpenseId,
-    userId: req.user._id,
-  })
-
-  if (!deletedRecord) {
-    throw new ApiError(
-      404,
-      'Daily expense not found or you do not have permission to delete it',
-    )
-  }
-
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(200, null, 'The daily expense is deleted successfully'),
-    )
 })
 
 const deleteCategoryFromDailyExpenses = async ({
@@ -272,70 +299,27 @@ const deleteCategoryFromDailyExpenses = async ({
   )
 }
 
-const addExpAmountToCategoryActAmt = async ({
+async function adjustSelectableCategoryActualAmount({
   monthlyCategoricalExpenseId,
   userId,
-  amount,
-}) => {
-  if (!monthlyCategoricalExpenseId) return false
+  delta,
+  session,
+}) {
+  if (!monthlyCategoricalExpenseId) return
+
   if (!mongoose.Types.ObjectId.isValid(monthlyCategoricalExpenseId)) {
     throw new ApiError(400, 'Invalid monthly categorical expense ID')
   }
 
-  amount = Number(amount) || 0
-  try {
-    await MonthlyCategoricalExpense.findOneAndUpdate(
-      {
-        _id: monthlyCategoricalExpenseId,
-        userId: userId,
-      },
-      {
-        $inc: { actualAmount: amount },
-      },
-      {
-        runValidators: true,
-      },
-    )
-    return true
-  } catch (error) {
-    throw new ApiError(
-      404,
-      'Failed to add expense amount to category actual amount',
-    )
-  }
-}
+  const inc = Number(delta) || 0
+  if (inc === 0) return
 
-const deleteActAmtFromCategory = async ({
-  monthlyCategoricalExpenseId,
-  userId,
-  amount,
-}) => {
-  if (!monthlyCategoricalExpenseId) return false
-  if (!mongoose.Types.ObjectId.isValid(monthlyCategoricalExpenseId)) {
-    throw new ApiError(400, 'Invalid monthly categorical expense ID')
-  }
-
-  amount = Number(amount) || 0
-  try {
-    await MonthlyCategoricalExpense.findOneAndUpdate(
-      {
-        _id: monthlyCategoricalExpenseId,
-        userId: userId,
-      },
-      {
-        $inc: { actualAmount: -amount },
-      },
-      {
-        runValidators: true,
-      },
-    )
-    return true
-  } catch (error) {
-    throw new ApiError(
-      404,
-      'Failed to delete expense amount from category actual amount',
-    )
-  }
+  // Only sync when selectable === true (read-only actualAmount)
+  await MonthlyCategoricalExpense.updateOne(
+    { _id: monthlyCategoricalExpenseId, userId, selectable: true },
+    { $inc: { actualAmount: inc } },
+    { session, runValidators: true },
+  )
 }
 
 
