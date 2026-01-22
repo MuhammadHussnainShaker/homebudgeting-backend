@@ -18,7 +18,7 @@ const dailyExpenseSchema = new mongoose.Schema(
     },
     amount: {
       type: Number,
-      required: [true, 'Amount is required'], 
+      required: [true, 'Amount is required'],
       min: [0, 'Amount cannot be negative. You entered: {VALUE}'],
       default: 0,
     },
@@ -31,6 +31,6 @@ const dailyExpenseSchema = new mongoose.Schema(
   { timestamps: true },
 )
 
-dailyExpenseSchema.index({ userId : 1, date : 1,})
+dailyExpenseSchema.index({ userId: 1, monthlyCategoricalExpenseId: 1, date: 1 })
 
 export const DailyExpense = mongoose.model('DailyExpense', dailyExpenseSchema)
