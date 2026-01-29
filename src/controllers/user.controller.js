@@ -25,6 +25,7 @@ const registerUserByPhone = asyncHandler(async (req, res) => {
   const options = {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
+    sameSite: 'none', // TODO: convert to lax if frontend and backend are on same domain
   }
 
   return res
@@ -52,6 +53,7 @@ const loginUserByPhone = asyncHandler(async (req, res) => {
   const options = {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
+    sameSite: 'none', // TODO: convert to lax if frontend and backend are on same domain
   }
 
   return res
